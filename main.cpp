@@ -234,6 +234,16 @@ int main() {
   Animation sShell(t8, 0, 0, 47, 47, 1, 0);
   Animation sShield(t9, 0, 0, 240, 243, 1, 0);
 
+  sf::Font font;
+  if (!font.loadFromFile("fonts/UbuntuMonoNerdFont-Regular.ttf"))
+    printf("UbuntuMonoNerdFont.ttf not found");
+  sf::Text TimerGame;
+  TimerGame.setFont(font);
+  TimerGame.setString("Duration:" + std::to_string(0));
+  TimerGame.setFillColor(sf::Color(255, 255, 255, 255));
+  TimerGame.setCharacterSize(24);
+  TimerGame.setPosition(10, 20);
+
   Music music, blazer;
 
   if (!blazer.openFromFile("music/effects/blazer.wav"))
@@ -262,6 +272,7 @@ int main() {
   p->settings(sPlayer, 200, 200, 0, 20);
   entities.push_back(p);
 
+  Time duration = reloj.getElapsedTime();
   /////main loop/////
   while (app.isOpen()) {
     Event event;
@@ -422,8 +433,12 @@ int main() {
         i++;
     }
 
+    Time tempTime = reloj.getElapsedTime();
     //////draw//////
+    TimerGame.setString("Duration: " + std::to_string(tempTime.asSeconds() -
+                                                      duration.asSeconds()));
     app.draw(background);
+    app.draw(TimerGame);
     for (auto i : entities)
       i->draw(app);
     app.display();
