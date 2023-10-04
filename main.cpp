@@ -19,6 +19,30 @@ std::string map[5] = {"images/backgrounds/background.jpg",
                       "images/backgrounds/background_abajo.jpg",
                       "images/backgrounds/background_arriba.jpg"};
 
+int framesAste = 500;
+
+void bezier(int x[4], int y[4], double *matx, double *maty, int div) {
+
+  int i = 0;
+
+  double t;
+
+  for (t = 0.0; t < 1.0; t += (double)1 / div)
+
+  {
+
+    double xt = pow(1 - t, 3) * x[0] + 3 * t * pow(1 - t, 2) * x[1] +
+                3 * pow(t, 2) * (1 - t) * x[2] + pow(t, 3) * x[3];
+
+    double yt = pow(1 - t, 3) * y[0] + 3 * t * pow(1 - t, 2) * y[1] +
+                3 * pow(t, 2) * (1 - t) * y[2] + pow(t, 3) * y[3];
+
+    *(matx + i) = xt;
+    *(maty + i) = yt;
+    i++;
+  }
+}
+
 class Animation {
 public:
   float Frame, speed;
@@ -92,16 +116,30 @@ public:
 };
 
 class asteroid : public Entity {
+private:
+  int position = 0;
+  double *Hx = new double[framesAste];
+  double *Hy = new double[framesAste];
+
 public:
   asteroid() {
-    dx = rand() % 8 - 4;
-    dy = rand() % 8 - 4;
+    dx = rand() % W + 0;
+    dy = rand() % H + 0;
     name = "asteroid";
+    if ((rand() % 100 + 1) % 2)
+      bezier(new int[4]{0, 400, 800, 1200},
+             new int[4]{(int)dy, 125, 425, (int)dy}, Hx, Hy, framesAste);
+    else
+      bezier(new int[4]{(int)dx, 400, 800, (int)dx},
+             new int[4]{0, 216, 433, 650}, Hx, Hy, framesAste);
   }
 
   void update() {
-    x += dx;
-    y += dy;
+    // x += dx;
+    // y += dy;
+
+    x = Hx[position];
+    y = Hy[position];
 
     if (x > W)
       x = 0;
@@ -111,6 +149,11 @@ public:
       y = 0;
     if (y < 0)
       y = H;
+    if (position < framesAste) {
+      position++;
+    } else {
+      position = 0;
+    }
   }
 };
 
@@ -131,7 +174,13 @@ public:
 };
 class torpedo : public Entity {
 public:
-  torpedo() { name = "torpedo"; }
+  int xd;
+  int yd;
+  torpedo(int xdd, int ydd) {
+    name = "torpedo";
+    xd = xdd;
+    yd = ydd;
+  }
 
   void update() {
     dx = cos(angle * DEGTORAD) * 6;
@@ -141,6 +190,8 @@ public:
     y += dy;
 
     if (x > W || x < 0 || y > H || y < 0)
+      life = 0;
+    if (sqrt(pow(xd - x, 2)) > 200 || sqrt(pow(yd - y, 2)) > 200)
       life = 0;
   }
 };
@@ -265,6 +316,7 @@ bool isCollide(Entity *a, Entity *b) {
 }
 
 int main() {
+
   srand(time(0));
   bool gameover = false;
   int score = 0;
@@ -408,7 +460,7 @@ int main() {
                 entities.push_back(b);
               }
               if (p->powerType == "red") {
-                torpedo *b = new torpedo();
+                torpedo *b = new torpedo(p->x, p->y);
                 blazer.play();
                 b->settings(sTorpedo, p->x, p->y, p->angle, 10);
                 entities.push_back(b);
@@ -445,7 +497,7 @@ int main() {
                 entities.push_back(b);
               }
               if (p->powerType == "red") {
-                torpedo *b = new torpedo();
+                torpedo *b = new torpedo(p->x, p->y);
                 blazer.play();
                 b->settings(sTorpedo, p->x, p->y, p->angle, 10);
                 entities.push_back(b);
@@ -503,6 +555,7 @@ int main() {
     }
     for (auto a : entities)
       for (auto b : entities) {
+
         if (a->name == "asteroid" && b->name == "bullet")
           if (isCollide(a, b)) {
             a->life = false;
@@ -518,12 +571,11 @@ int main() {
               if (a->R == 15)
                 continue;
               Entity *e = new asteroid();
-              e->settings(sRock_small, a->x, a->y, rand() % 360, 15);
+              e->settings(sRock_small, a->x + 10, a->y + 10, rand() % 360, 15);
               entities.push_back(e);
             }
             !gameover ? score += 1 : score += 0;
           }
-
         if (a->name == "asteroid" && b->name == "torpedo")
           if (isCollide(a, b)) {
             a->life = false;
@@ -578,13 +630,13 @@ int main() {
         if (a->name == "player" && b->name == "asteroid" && p->visibility)
           if (isCollide(a, b)) {
             b->life = false;
-
+            p->life -= 1;
             Entity *e = new Entity();
             e->settings(sExplosion_ship, a->x, a->y);
             e->name = "explosion";
             entities.push_back(e);
-            p->life -= 1;
             if (p->life == false) {
+
               music.stop();
               blazer.stop();
               p->settings(sPlayer, W / 2, H / 2, 0, 20);

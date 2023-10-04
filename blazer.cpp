@@ -1,8 +1,8 @@
+#include "blazer.h"
 #include <math.h>
+void bezier(int x[4], int y[4], double *matx, double *maty) {
 
-void bezier(int x[4], int y[4]) {
-
-  int i;
+  int i = 0;
 
   double t;
 
@@ -16,13 +16,8 @@ void bezier(int x[4], int y[4]) {
     double yt = pow(1 - t, 3) * y[0] + 3 * t * pow(1 - t, 2) * y[1] +
                 3 * pow(t, 2) * (1 - t) * y[2] + pow(t, 3) * y[3];
 
-    pixel(xt, yt, 'A', 0, 12);
-
-    for (int i = 0; i < 4; ++i)
-
-    {
-
-      pixel(x[i], y[i], 'o', 0, 4);
-    }
+    *(matx + i) = xt;
+    *(maty + i) = xt;
+    i++;
   }
 }
