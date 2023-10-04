@@ -128,9 +128,10 @@ public:
     name = "asteroid";
     if ((rand() % 100 + 1) % 2)
       bezier(new int[4]{0, 400, 800, 1200},
-             new int[4]{(int)dy, 125, 425, (int)dy}, Hx, Hy, framesAste);
+             new int[4]{(int)dy, (int)dy - 160, (int)dy + 160, (int)dy}, Hx, Hy,
+             framesAste);
     else
-      bezier(new int[4]{(int)dx, 400, 800, (int)dx},
+      bezier(new int[4]{(int)dx, (int)dx - 300, (int)dx + 300, (int)dx},
              new int[4]{0, 216, 433, 650}, Hx, Hy, framesAste);
   }
 
@@ -709,6 +710,7 @@ int main() {
     float TimeDuration;
     TimeDuration =
         !gameover ? tempTime.asSeconds() - duration.asSeconds() : TimeDuration;
+
     //////draw//////
     if (!gameover) {
       TimerGame.setString("Duration: " + std::to_string(TimeDuration));
